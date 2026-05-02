@@ -42,3 +42,127 @@ replace_in_board(Board, R, C, NewElem, NewBoard) :-
     nth0(C, OldRow, _, RestElems),
     nth0(C, NewRow, NewElem, RestElems),
     nth0(R, NewBoard, NewRow, RestRows).
+
+
+% =====================
+% Opponents & Sides
+% =====================
+opponent(a, d).
+opponent(a, k).
+opponent(d, a).
+
+attacker(a).
+defender(d).
+defender(k).
+
+% =====================
+% Throne & Corners
+% =====================
+throne(4, 4).
+
+corner(0, 0). 
+corner(0, 8). 
+corner(8, 0). 
+corner(8, 8).
+
+% =====================
+% Hostile To
+% =====================
+hostile_to(_, R, C, _) :-
+    throne(R, C) ; corner(R, C).
+
+hostile_to(Board, R, C, Piece) :-
+    nth0(R, Board, Row),
+    nth0(C, Row, Other),
+    Other \= e,
+    opponent(Other, Piece).
+% =====================
+% Is Sandwiched
+% =====================
+is_sandwiched(Board, R, C, Piece) :-
+    C1 is C-1, C2 is C+1,
+    hostile_to(Board, R, C1, Piece),
+    hostile_to(Board, R, C2, Piece).
+
+is_sandwiched(Board, R, C, Piece) :-
+    R1 is R-1, R2 is R+1,
+    hostile_to(Board, R1, C, Piece),
+    hostile_to(Board, R2, C, Piece).
+
+
+% Neighbors
+
+neighbor(R, C, R, C2):-C2 is C+1.
+neighbor(R, C, R, C2):-C2 is C-1.
+neighbor(R, C, R2, C):-R2 is R+1.
+neighbor(R, C, R2, C):-R2 is R-1.
+
+
+
+% Capture
+
+capture_if_sandwiched(Board, R, C, Piece, FinalBoard) :-
+    (Piece \= k, is_sandwiched(Board, R, C, Piece) ->
+        remove_captured(Board, [R-C], TempBoard2)
+    ;
+        TempBoard2 = Board
+    ),
+    findall(R2-C2, (
+        neighbor(R, C, R2, C2),
+        nth0(R2, TempBoard2, Row),
+        nth0(C2, Row, Target),
+        Target \= e,
+        Target \= k,
+        opponent(Piece, Target),
+        is_sandwiched(TempBoard2, R2, C2, Target)
+    ), Captured),
+    remove_captured(TempBoard2, Captured, FinalBoard).
+
+remove_captured(Board, [], Board).
+remove_captured(Board, [R-C|Rest], FinalBoard) :-
+    replace_in_board(Board, R, C, e, TempBoard),
+    remove_captured(TempBoard, Rest, FinalBoard).
+
+
+% Win Conditions
+
+defenders_win(Board) :-
+    corner(R, C),
+    nth0(R, Board, Row),
+    nth0(C, Row, k).
+
+attackers_win(Board) :-
+    search_king(Board, R, C),
+    check_king_surrounded(Board, R, C).
+
+search_king(Board, R, C) :-
+    nth0(R, Board, Row),
+    nth0(C, Row, k).
+
+check_king_surrounded(Board, R, C) :-
+    R1 is R-1, R2 is R+1,
+    C1 is C-1, C2 is C+1,
+    (R1 < 0 -> true ; is_attack(Board,R1,C)),
+    (R2 > 8 -> true ; is_attack(Board, R2, C)),
+    (C1 < 0 -> true ; is_attack(Board, R, C1)),
+    (C2 > 8 -> true ; is_attack(Board, R, C2)).
+
+is_attack(B,R,C):-
+ nth0(R,B,ROW),
+ nth0(C,ROW,a).
+
+
+% Print Board
+
+print_board([]).
+print_board([Row|Rest]) :-
+    print_row(Row), nl,
+    print_board(Rest).
+
+print_row([]).
+print_row([Cell|Rest]) :-
+    write(Cell), write(' '),
+    print_row(Rest).
+
+
+    
