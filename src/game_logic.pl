@@ -1,3 +1,9 @@
+special_cell(0, 0).
+special_cell(0, 8).
+special_cell(8, 0).
+special_cell(8, 8).
+throne_cell(4, 4).
+
 initial_board([
     [e, e, e, a, a, a, e, e, e],
     [e, e, e, e, a, e, e, e, e],
@@ -22,7 +28,8 @@ is_valid_move(Board, R1, C1, R2, C2) :-
     nth0(R1, Board, Row1), nth0(C1, Row1, Piece), Piece \= e,
     nth0(R2, Board, Row2), nth0(C2, Row2, e),
     (R1 = R2 ; C1 = C2),
-    path_is_clear(Board, R1, C1, R2, C2).
+    path_is_clear(Board, R1, C1, R2, C2),
+    ( (special_cell(R2, C2) ; throne_cell(R2, C2)) -> Piece = k ; true ).
 
 move_piece(Board, R1, C1, R2, C2, NewBoard) :-
     is_valid_move(Board, R1, C1, R2, C2),
