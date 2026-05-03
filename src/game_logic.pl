@@ -1,8 +1,10 @@
-special_cell(0, 0).
-special_cell(0, 8).
-special_cell(8, 0).
-special_cell(8, 8).
+throne(4, 4).
 throne_cell(4, 4).
+corner(0, 0). 
+corner(0, 8). 
+corner(8, 0). 
+corner(8, 8).
+special_cell(R, C) :- corner(R, C).
 
 initial_board([
     [e, e, e, a, a, a, e, e, e],
@@ -31,11 +33,12 @@ is_valid_move(Board, R1, C1, R2, C2) :-
     path_is_clear(Board, R1, C1, R2, C2),
     ( (special_cell(R2, C2) ; throne_cell(R2, C2)) -> Piece = k ; true ).
 
-move_piece(Board, R1, C1, R2, C2, NewBoard) :-
+move_piece(Board, R1, C1, R2, C2, FinalBoard) :-
     is_valid_move(Board, R1, C1, R2, C2),
     nth0(R1, Board, R1Row), nth0(C1, R1Row, Piece),
     replace_in_board(Board, R1, C1, e, TempBoard),
-    replace_in_board(TempBoard, R2, C2, Piece, NewBoard).
+    replace_in_board(TempBoard, R2, C2, Piece, BoardAfterMove),
+    capture_if_sandwiched(BoardAfterMove, R2, C2, Piece, FinalBoard).
 
 replace_in_board(Board, R, C, NewElem, NewBoard) :-
     nth0(R, Board, OldRow, RestRows),
@@ -52,14 +55,6 @@ opponent(d, a).
 attacker(a).
 defender(d).
 defender(k).
-
-
-throne(4, 4).
-
-corner(0, 0). 
-corner(0, 8). 
-corner(8, 0). 
-corner(8, 8).
 
 is_dangerous_cell(_, R, C, _) :-
     throne(R, C) ; corner(R, C).
@@ -155,4 +150,4 @@ print_row([Cell|Rest]) :-
     print_row(Rest).
 
 
-    
+
