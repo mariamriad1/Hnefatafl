@@ -61,26 +61,24 @@ corner(0, 8).
 corner(8, 0). 
 corner(8, 8).
 
-
-hostile_to(_, R, C, _) :-
+is_dangerous_cell(_, R, C, _) :-
     throne(R, C) ; corner(R, C).
 
-hostile_to(Board, R, C, Piece) :-
+is_dangerous_cell(Board, R, C, Piece) :-
     nth0(R, Board, Row),
     nth0(C, Row, Other),
     Other \= e,
     opponent(Other, Piece).
 
-
 is_sandwiched(Board, R, C, Piece) :-
     C1 is C-1, C2 is C+1,
-    hostile_to(Board, R, C1, Piece),
-    hostile_to(Board, R, C2, Piece).
+    is_dangerous_cell(Board, R, C1, Piece),
+    is_dangerous_cell(Board, R, C2, Piece).
 
 is_sandwiched(Board, R, C, Piece) :-
     R1 is R-1, R2 is R+1,
-    hostile_to(Board, R1, C, Piece),
-    hostile_to(Board, R2, C, Piece).
+    is_dangerous_cell(Board, R1, C, Piece),
+    is_dangerous_cell(Board, R2, C, Piece).
 
 
 % Neighbors
