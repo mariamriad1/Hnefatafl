@@ -1,3 +1,15 @@
+within_board(R, C) :- R >= 0, R =< 8, C >= 0, C =< 8.
+
+directions([(0,1),(0,-1),(1,0),(-1,0)]).
+
+corners([corner(0,0), corner(0,8), corner(8,0), corner(8,8)]).
+
+corner(0,0). corner(0,8). corner(8,0). corner(8,8).
+
+throne(4,4).
+
+game_over(Board, defender_wins) :- defenders_win(Board).
+game_over(Board, attacker_wins) :- attackers_win(Board).
 utility(Board, Player, Score) :-
     (   game_over(Board, defender_wins)
     ->  (Player = defender -> Score = 10000 ; Score = -10000)
@@ -14,7 +26,7 @@ utility(Board, Player, Score) :-
                   + DistScore
                   - DangerScore
                   + MobilityScore,
-        (Player = attacker -> Score is -RawScore ; Score = RawScore)
+        (Player = attacker -> Score is -RawScore ; Score is RawScore)
     ).
 
 count_pieces(Board, Piece, Count) :-
@@ -23,6 +35,10 @@ count_pieces(Board, Piece, Count) :-
         nth0(_, Row, Piece)
     ), List),
     length(List, Count).
+
+find_king(Board, R, C) :-
+    nth0(R, Board, Row),
+    nth0(C, Row, k).
 
 king_distance_score(KR, KC, Score) :-
     corners(Corners),
