@@ -18,7 +18,7 @@ switch_player(attacker, defender).
 switch_player(defender, attacker).
 
 take_turn(Board, Curr_player, Curr_player, NewBoard) :-
-    write('Your move (R1-C1-R2-C2): '),
+    write(' please enter Your move (R1-C1-R2-C2): '),
     read(R1-C1-R2-C2),
     move_piece(Board, R1, C1, R2, C2, TempBoard),
     nth0(R2, TempBoard, Row),
