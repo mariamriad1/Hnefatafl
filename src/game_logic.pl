@@ -44,9 +44,7 @@ replace_in_board(Board, R, C, NewElem, NewBoard) :-
     nth0(R, NewBoard, NewRow, RestRows).
 
 
-% =====================
-% Opponents & Sides
-% =====================
+
 opponent(a, d).
 opponent(a, k).
 opponent(d, a).
@@ -55,9 +53,7 @@ attacker(a).
 defender(d).
 defender(k).
 
-% =====================
-% Throne & Corners
-% =====================
+
 throne(4, 4).
 
 corner(0, 0). 
@@ -65,9 +61,7 @@ corner(0, 8).
 corner(8, 0). 
 corner(8, 8).
 
-% =====================
-% Hostile To
-% =====================
+
 hostile_to(_, R, C, _) :-
     throne(R, C) ; corner(R, C).
 
@@ -76,9 +70,8 @@ hostile_to(Board, R, C, Piece) :-
     nth0(C, Row, Other),
     Other \= e,
     opponent(Other, Piece).
-% =====================
-% Is Sandwiched
-% =====================
+
+
 is_sandwiched(Board, R, C, Piece) :-
     C1 is C-1, C2 is C+1,
     hostile_to(Board, R, C1, Piece),
@@ -152,7 +145,6 @@ is_attack(B,R,C):-
  nth0(C,ROW,a).
 
 
-% Print Board
 
 print_board([]).
 print_board([Row|Rest]) :-
