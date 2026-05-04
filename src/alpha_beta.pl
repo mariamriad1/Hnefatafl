@@ -79,19 +79,19 @@ get_best_move(Board, Difficulty, BestMove) :-
     Moves \= [],
     findall(V-M, (
         member(M, Moves), M = move(R1,C1,R2,C2),
-        move_piece(Board, R1, C1, R2, C2, AfterMove),
-        nth0(R1, Board, Row1), nth0(C1, Row1, Piece),
-        capture_if_sandwiched(AfterMove, R2, C2, Piece, NB),
+        move_piece(Board, R1, C1, R2, C2, NB),
         alphabeta(NB, Depth, -10001, 10001, defender, V)
     ), Scored),
     max_member(_-BestMove, Scored).
 
-alphabeta(Board, 0, _A, _B, Player, Value) :- !,
-    utility(Board, Player, Value).
-alphabeta(Board, _D, _A, _B, _, Value) :-
+alphabeta(Board, 0, _A, _B, _Player, Value) :- !,
+    utility(Board, attacker, Value).
+
+alphabeta(Board, _D, _A, _B, _Player, Value) :-
     (   defenders_win(Board) -> Value = -10000
     ;   attackers_win(Board) -> Value = 10000
     ), !.
+
 alphabeta(Board, D, A, B, attacker, Value) :-
     D > 0,
     findall(move(R1,C1,R2,C2), (
@@ -102,6 +102,7 @@ alphabeta(Board, D, A, B, attacker, Value) :-
     ;   D1 is D-1,
         ab_max(Moves, Board, D1, A, B, Value)
     ).
+
 alphabeta(Board, D, A, B, defender, Value) :-
     D > 0,
     findall(move(R1,C1,R2,C2), (
@@ -115,9 +116,7 @@ alphabeta(Board, D, A, B, defender, Value) :-
 
 ab_max([], _, _, A, _, A).
 ab_max([move(R1,C1,R2,C2)|Rest], Board, D, A, B, Value) :-
-    move_piece(Board, R1, C1, R2, C2, AfterMove),
-    nth0(R1, Board, Row1), nth0(C1, Row1, Piece),
-    capture_if_sandwiched(AfterMove, R2, C2, Piece, NB),
+    move_piece(Board, R1, C1, R2, C2, NB),
     alphabeta(NB, D, A, B, defender, V),
     NA is max(A, V),
     (   NA >= B
@@ -127,9 +126,7 @@ ab_max([move(R1,C1,R2,C2)|Rest], Board, D, A, B, Value) :-
 
 ab_min([], _, _, _, B, B).
 ab_min([move(R1,C1,R2,C2)|Rest], Board, D, A, B, Value) :-
-    move_piece(Board, R1, C1, R2, C2, AfterMove),
-    nth0(R1, Board, Row1), nth0(C1, Row1, Piece),
-    capture_if_sandwiched(AfterMove, R2, C2, Piece, NB),
+    move_piece(Board, R1, C1, R2, C2, NB),
     alphabeta(NB, D, A, B, attacker, V),
     NB2 is min(B, V),
     (   A >= NB2
