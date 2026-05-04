@@ -7,7 +7,7 @@ start_game :-
     play_loop(Board, attacker, Human_role,Difficulty).
 
 play_loop(Board, Curr_player, Human_role,Difficulty) :-
-    print_board(Board),
+    show_board(Board),
     (defenders_win(Board) ->  write('Defenders Win') ;
 
     attackers_win(Board) ->  write('Attackers Win') ;
