@@ -71,7 +71,7 @@ difficulty(easy, 1).
 difficulty(medium, 3).
 difficulty(hard, 5).
 
-get_best_move(Board, Difficulty, BestMove) :-
+get_best_move(Board, Difficulty, attacker, BestMove) :-
     difficulty(Difficulty, Depth),
     findall(move(R1,C1,R2,C2), (
         nth0(R1, Board, Row), nth0(C1, Row, a),
@@ -83,6 +83,19 @@ get_best_move(Board, Difficulty, BestMove) :-
         alphabeta(NB, Depth, -10001, 10001, defender, V)
     ), Scored),
     max_member(_-BestMove, Scored).
+
+get_best_move(Board, Difficulty, defender, BestMove) :-
+    difficulty(Difficulty, Depth),
+    findall(move(R1,C1,R2,C2), (
+        nth0(R1, Board, Row), nth0(C1, Row, P), (P=d ; P=k),
+        is_valid_move(Board, R1, C1, R2, C2)), Moves),
+    Moves \= [],
+    findall(V-M, (
+        member(M, Moves), M = move(R1,C1,R2,C2),
+        move_piece(Board, R1, C1, R2, C2, NB),
+        alphabeta(NB, Depth, -10001, 10001, attacker, V)
+    ), Scored),
+    min_member(_-BestMove, Scored).
 
 alphabeta(Board, 0, _A, _B, _Player, Value) :- !,
     utility(Board, attacker, Value).
