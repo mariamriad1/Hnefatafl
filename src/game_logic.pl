@@ -46,18 +46,17 @@ replace_in_board(Board, R, C, NewElem, NewBoard) :-
     nth0(C, NewRow, NewElem, RestElems),
     nth0(R, NewBoard, NewRow, RestRows).
 
-
-
 opponent(a, d).
 opponent(a, k).
 opponent(d, a).
 
-attacker(a).
-defender(d).
-defender(k).
 
-is_dangerous_cell(_, R, C, _) :-
-    throne(R, C) ; corner(R, C).
+
+is_dangerous_cell(Board, R, C, _) :-
+    throne(R, C),  nth0(R, Board, Row), nth0(C, Row, e).
+
+is_dangerous_cell(Board, R, C, _) :-
+    corner(R, C),  nth0(R, Board, Row), nth0(C, Row, e).
 
 is_dangerous_cell(Board, R, C, Piece) :-
     nth0(R, Board, Row),
@@ -76,7 +75,7 @@ is_sandwiched(Board, R, C, Piece) :-
     is_dangerous_cell(Board, R2, C, Piece).
 
 
-% Neighbors
+
 
 neighbor(R, C, R, C2):-C2 is C+1.
 neighbor(R, C, R, C2):-C2 is C-1.
@@ -85,7 +84,6 @@ neighbor(R, C, R2, C):-R2 is R-1.
 
 
 
-% Capture
 
 capture_if_sandwiched(Board, R, C, Piece, FinalBoard) :-
     (Piece \= k, is_sandwiched(Board, R, C, Piece) ->
@@ -110,7 +108,7 @@ remove_captured(Board, [R-C|Rest], FinalBoard) :-
     remove_captured(TempBoard, Rest, FinalBoard).
 
 
-% Win Conditions
+
 
 defenders_win(Board) :-
     corner(R, C),
@@ -139,15 +137,16 @@ is_attack(B,R,C):-
 
 
 
-print_board([]).
-print_board([Row|Rest]) :-
-    print_row(Row), nl,
-    print_board(Rest).
+show_board([]).
+show_board([Row|Rest]) :-show_row(Row), nl,
+ show_board(Rest).
 
-print_row([]).
-print_row([Cell|Rest]) :-
-    write(Cell), write(' '),
-    print_row(Rest).
+show_row([]).
+show_row([Cell|Rest]) :-
+write(Cell), write(' '),show_row(Rest).
+
+
+
 
 
 
