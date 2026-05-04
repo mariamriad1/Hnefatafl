@@ -1,4 +1,5 @@
 within_board(R, C) :- R >= 0, R =< 8, C >= 0, C =< 8.
+corners([corner(0,0), corner(0,8), corner(8,0), corner(8,8)]).
 
 directions([(0,1),(0,-1),(1,0),(-1,0)]).
 
