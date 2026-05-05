@@ -70,7 +70,36 @@ king_mobility_score(Board, KR, KC, Score) :-
 
 difficulty(easy, 1).
 difficulty(medium, 3).
-difficulty(hard, 5).
+difficulty(hard, 4).
+
+might_capture(Board, R2, C2, Piece) :-
+    neighbor(R2, C2, NR, NC),
+    NR >= 0, NR =< 8, NC >= 0, NC =< 8,
+    nth0(NR, Board, Row),
+    nth0(NC, Row, Target),
+    Target \= e,
+    opponent(Piece, Target).
+
+order_moves(Board, Moves, Ordered, Piece) :-
+    partition_captures(Board, Moves, Caps, NonCaps, Piece),
+    append(Caps, NonCaps, Ordered).
+
+partition_captures(_, [], [], [], _).
+partition_captures(Board, [move(R1,C1,R2,C2)|Rest], Caps, NonCaps, Piece) :-
+    (   might_capture(Board, R2, C2, Piece)
+    ->  partition_captures(Board, Rest, CapsR, NonCaps, Piece),
+        Caps = [move(R1,C1,R2,C2)|CapsR]
+    ;   partition_captures(Board, Rest, Caps, NonCapsR, Piece),
+        NonCaps = [move(R1,C1,R2,C2)|NonCapsR]
+    ).
+
+limit_moves(Moves, Max, Limited) :-
+    length(Moves, Len),
+    (   Len > Max
+    ->  length(Limited, Max),
+        append(Limited, _, Moves)
+    ;   Limited = Moves
+    ).
 
 get_best_move(Board, Difficulty, attacker, BestMove) :-
     difficulty(Difficulty, Depth),
@@ -78,8 +107,10 @@ get_best_move(Board, Difficulty, attacker, BestMove) :-
         nth0(R1, Board, Row), nth0(C1, Row, a),
         is_valid_move(Board, R1, C1, R2, C2)), Moves),
     Moves \= [],
+    order_moves(Board, Moves, OrderedMoves, a),
+    limit_moves(OrderedMoves, 10, LimitedMoves), 
     findall(V-M, (
-        member(M, Moves), M = move(R1,C1,R2,C2),
+        member(M, LimitedMoves), M = move(R1,C1,R2,C2),
         move_piece(Board, R1, C1, R2, C2, NB),
         alphabeta(NB, Depth, -10001, 10001, defender, V)
     ), Scored),
@@ -91,8 +122,10 @@ get_best_move(Board, Difficulty, defender, BestMove) :-
         nth0(R1, Board, Row), nth0(C1, Row, P), (P=d ; P=k),
         is_valid_move(Board, R1, C1, R2, C2)), Moves),
     Moves \= [],
+    order_moves(Board, Moves, OrderedMoves, d),
+    limit_moves(OrderedMoves, 10, LimitedMoves), 
     findall(V-M, (
-        member(M, Moves), M = move(R1,C1,R2,C2),
+        member(M, LimitedMoves), M = move(R1,C1,R2,C2),
         move_piece(Board, R1, C1, R2, C2, NB),
         alphabeta(NB, Depth, -10001, 10001, attacker, V)
     ), Scored),
@@ -113,8 +146,10 @@ alphabeta(Board, D, A, B, attacker, Value) :-
         is_valid_move(Board, R1, C1, R2, C2)), Moves),
     (   Moves = []
     ->  Value = -10000
-    ;   D1 is D-1,
-        ab_max(Moves, Board, D1, A, B, Value)
+    ;   order_moves(Board, Moves, OrderedMoves, a),
+        limit_moves(OrderedMoves, 8, LimitedMoves), 
+        D1 is D-1,
+        ab_max(LimitedMoves, Board, D1, A, B, Value)
     ).
 
 alphabeta(Board, D, A, B, defender, Value) :-
@@ -124,8 +159,10 @@ alphabeta(Board, D, A, B, defender, Value) :-
         is_valid_move(Board, R1, C1, R2, C2)), Moves),
     (   Moves = []
     ->  Value = 10000
-    ;   D1 is D-1,
-        ab_min(Moves, Board, D1, A, B, Value)
+    ;   order_moves(Board, Moves, OrderedMoves, d),
+        limit_moves(OrderedMoves, 8, LimitedMoves), 
+        D1 is D-1,
+        ab_min(LimitedMoves, Board, D1, A, B, Value)
     ).
 
 ab_max([], _, _, A, _, A).
@@ -142,8 +179,8 @@ ab_min([], _, _, _, B, B).
 ab_min([move(R1,C1,R2,C2)|Rest], Board, D, A, B, Value) :-
     move_piece(Board, R1, C1, R2, C2, NB),
     alphabeta(NB, D, A, B, attacker, V),
-    NB2 is min(B, V),
-    (   A >= NB2
-    ->  Value = NB2
-    ;   ab_min(Rest, Board, D, A, NB2, Value)
+    NewB is min(B, V),
+    (   A >= NewB
+    ->  Value = NewB
+    ;   ab_min(Rest, Board, D, A, NewB, Value)
     ).
